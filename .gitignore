@@ -1,3 +1,5 @@
 *.pyc
 *.log
 *.swp
+.DS_Store
+Create/tmp

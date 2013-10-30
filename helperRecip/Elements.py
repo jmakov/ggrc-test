@@ -69,6 +69,10 @@ class Elements(object):
         
         object_detail_page_edit_link = '//section[contains(@id,"info_widget")]//a[contains(@title,"Edit")]'
         object_detail_page_info_section = '//section[contains(@id,"info_widget")]'
+        # 'SECTION' is for the object type, not e.g. policy sections
+        object_widget_section_link = '//a[@href=#SECTION_widget]'
+        object_widget_add_items = '//section[@id="SECTION_widget"]//a[@class="section-add"]'
+        object_widget_import_link = '//section[@id="SECTION_widget"]//a[@class="section-import"'
 
         object_info_page_edit_link = '//a[@class="info-edit"]'
         object_title = '//div[@class="modal-body"]/form//input[@name="title"]'

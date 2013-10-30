@@ -158,7 +158,13 @@ class Helpers(unittest.TestCase):
         last_created_object_link = self.element.left_nav_last_created_object_link.replace("SECTION", widget).replace("OBJECT_TITLE", object_title)
         self.assertTrue(self.util.waitForElementToBePresent(last_created_object_link), "ERROR inside verifyObjectIsCreated(), do not see the newly created object in " + widget)
         return last_created_object_link
-    
+
+    def navigateToWidget(self, section):
+        self.util.clickOnAndWaitFor(
+            self.element.object_widget_section_link.replace("SECTION", section.lower()),
+            self.element.object_detail_page_info_section,
+        )
+
     def navigateToObject(self, section, object_title_link):
            # Refresh the page
         
