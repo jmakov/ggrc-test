@@ -5,8 +5,8 @@ Created on Jun 19, 2013
 '''
 
 import datetime
-from datetime import date
-from datetime import timedelta
+from datetime import date, timedelta, datetime as dt
+import json
 import os
 import string
 import sys
@@ -19,6 +19,7 @@ from selenium.webdriver.common.by import By
 import config
 from Elements import Elements
 from WebdriverUtilities import WebdriverUtilities
+from testcase import WebDriverTestCase
 
 # ON OTHER DEPLOYMENTS, CHANGE THIS to the server user name
 SERVER_USER = 'jenkins'
@@ -29,15 +30,38 @@ class Helpers(unittest.TestCase):
     util = WebdriverUtilities()
     #driver = webdriver.Firefox()
 
+    def __init__(self, test=None):
+        # hack to make sure this is only called for WebDriverTestCase
+        if test and WebDriverTestCase in test.__class__.mro():
+            self.test = test  # enable it to access unit test object
+            self.main_timestamp = strftime("%Y_%m_%d_%H_%M_%S")
+            self.test.benchmarks['timestamp'] = self.main_timestamp
+        super(Helpers, self).__init__()
+
     def setUtils(self, util, object_type=None):
         self.util = util
         self.object_type = object_type
 
     def runTest(self):
         pass
-    
+
+    def log_time(f):
+        """decorator that records function time and stores it to the self.test.benchmark dict with key = function name and value = test duration"""
+        def benched_function(*args, **kwargs):
+            t_start = dt.now()
+            output = f(*args, **kwargs)
+            t_end = dt.now()
+            t_total = (t_end - t_start).total_seconds()
+            # args[0] = what would otherwise be self
+            args[0].test.benchmarks['results'][f.func_name] = t_total
+            return output
+
+        return benched_function
+
     def getTimeId(self):
-        return strftime("_%Y_%m_%d_%H_%M_%S")
+        # Always return the value generated at the start of the test;
+        # Prefix with "_" because it appends to names
+        return "_" + self.main_timestamp
 
     def is_on_server(self):
         """Used to decide where the output files go"""
