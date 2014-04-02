@@ -24,15 +24,34 @@ from testcase import WebDriverTestCase
 # ON OTHER DEPLOYMENTS, CHANGE THIS to the server user name
 SERVER_USER = 'jenkins'
 
+def log_time(f):
+    """decorator that records function time and stores it to the self.test.benchmark dict with key = function name and value = list of durations of all invocations of that function"""
+    def benched_function(*args, **kwargs):
+        t_start = dt.now()
+        output = f(*args, **kwargs)
+        t_end = dt.now()
+        t_total = (t_end - t_start).total_seconds()
+        # args[0] = what would otherwise be self
+        # Store the results dict in a var to save space
+        result_dict = args[0].test.benchmarks['results']
+        # Append to list at that key or start new one
+        if f.func_name in result_dict:
+            result_dict[f.func_name].append(t_total)
+        else:
+            result_dict[f.func_name] = [t_total]
+        return output
+
+    return benched_function
+
 
 class Helpers(unittest.TestCase):
     element = Elements()
     util = WebdriverUtilities()
-    #driver = webdriver.Firefox()
 
     def __init__(self, test=None):
         # hack to make sure this is only called for WebDriverTestCase
-        if test and WebDriverTestCase in test.__class__.mro():
+        # TODO: Make this less coupled to other parts of the code.
+        if test and isinstance(test, WebDriverTestCase):
             self.test = test  # enable it to access unit test object
             self.main_timestamp = strftime("%Y_%m_%d_%H_%M_%S")
             self.test.benchmarks['timestamp'] = self.main_timestamp
@@ -44,19 +63,6 @@ class Helpers(unittest.TestCase):
 
     def runTest(self):
         pass
-
-    def log_time(f):
-        """decorator that records function time and stores it to the self.test.benchmark dict with key = function name and value = test duration"""
-        def benched_function(*args, **kwargs):
-            t_start = dt.now()
-            output = f(*args, **kwargs)
-            t_end = dt.now()
-            t_total = (t_end - t_start).total_seconds()
-            # args[0] = what would otherwise be self
-            args[0].test.benchmarks['results'][f.func_name] = t_total
-            return output
-
-        return benched_function
 
     def getTimeId(self):
         # Always return the value generated at the start of the test;
