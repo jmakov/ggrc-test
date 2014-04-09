@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os, sys, re
 from time import strftime
@@ -25,6 +26,8 @@ TARGET_FOLDER_DICT = {
 class WebDriverTestCase(TestCase):
 
     def setup(self):
+        # note start time
+        self.t_start = datetime.now()
         # initialize benchmark dict first
         self.benchmarks = {'name': self.testname, 'results': {}}
         browser = config.browser
@@ -84,6 +87,9 @@ class WebDriverTestCase(TestCase):
             f.write(json_str)
 
     def tearDown(self):
+        self.t_end = datetime.now()
+        self.t_total = (self.t_end - self.t_start).total_seconds()
+        self.benchmarks['results']['overall_time'] = self.t_total
         self.write_results(json.dumps(self.benchmarks))
         self.driver.quit()
 
