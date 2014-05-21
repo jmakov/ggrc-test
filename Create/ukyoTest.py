@@ -1,19 +1,17 @@
+
+
+
 import time
 import unittest
+from selenium import webdriver
 
-from helperRecip.Elements import Elements
-from helperRecip.Helpers import Helpers
-from helperRecip.WebdriverUtilities import WebdriverUtilities
-from helperRecip.testcase import *
-
-
-class ukyoTest(WebDriverTestCase):
+class ukyoTest(unittest.TestCase):
 
 
     def test1(self):
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome("/usr/local/bin/chromedriver")
         driver.get("http://localhost:8080")  #("http://yahoo.com")
-        time.sleep(5)
+        time.sleep(9)
         driver.quit()
 
         
