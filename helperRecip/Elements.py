@@ -229,7 +229,7 @@ Section 1 of this regulation will have several objectives extracted from it. Whe
 * multiple objectives per sesction is easily supported and working
 * creation of a control under the section works as well
 
-Evidence of this should be provided as Screenshots        
+Evidence of this should be provided as Screenshot        
         """
         theShortTextDescription = 'Section 1 of this regulation will have several objectives extracted from it.'
         theShortDescriptionElement = '//div[@class="tree-description short"]'
