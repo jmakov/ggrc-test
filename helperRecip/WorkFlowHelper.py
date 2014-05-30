@@ -6,7 +6,7 @@ Created on May 26, 2014
 It's unlikely that elements are used by others when you purposely write it for the specified function.  Also, when Elements and Helpers classes 
 are getting bigger they become unmanageable.  
 
-All public functions have "WF" as a postfix to signify that the function is not from the parent class.
+All public functions have "WF" as a post-fix to signify that the function is not from the parent class.
 
 '''
 
@@ -150,6 +150,8 @@ class WorkFlowHelper(Helpers):
         self.util.clickOn(addSelected_bt)
         return True        
 
+
+
     @log_time
     # Return true if addTaskGroup succeed and not error out    
     # if you want to test the Cancel feature then set save=False
@@ -207,8 +209,50 @@ class WorkFlowHelper(Helpers):
             
         
     @log_time
+    # prerequisite: Already have "Workflow"menu open
     def stopWorkFlowWF(self):
         self.util.clickOn(self.endWorkflow_bt)
+        
+    ### NOTE:     searchObjectInWidgetPanelWF vs.  searchObjectInAddObjectToWorkflowWind ###
+    ###           widget panel is next to inner nav  ###    
+        
+    @log_time
+    # Search for an object in the table.  Return TRUE if found and FALSE otherwise.
+    def searchObjectInWidgetPanelWF(self, title, expandItIfFound=False):
+
+
+        #xpath = '//div[@id="filters"]/ul[1]/li[1]//div[@class="tree-title-area"]'
+        
+        count = self._workflowObjectCount()
+        for index in range [1:count]:
+            xpath = '//div[@id="filters"]/ul[1]/li[' + index + ']//div[@class="tree-title-area"]'
+     
+            titleText = self.util.getTextFromXpathString(xpath)
+            
+            if titleText == title:
+                if expandItIfFound == True:
+                    self.util.clickOn(xpath)
+                    
+                return True
+            else:
+                return False
+            
+    @log_time
+    # Search for the named object and ummap it
+    
+     
+    # Return the current total number count of workflows 
+    def _workflowObjectCount(self):
+        count_str_unfiltered = '//span[@id="objectsCounter"]' 
+        
+        count_str_filtered = self.util.getTextFromXpathString(count_str_unfiltered)
+        endix = count_str_filtered.index(']')
+        
+        count = count_str_unfiltered[1:endix]
+        
+        return count
+     
+     
         
     @log_time
     def unmapObjectsWF(self, objectName):
@@ -371,7 +415,32 @@ class WorkFlowHelper(Helpers):
             self.util.clickOn(li_History)
         elif menuItem == "Current Cycle":
             self.util.clickOn(li_CurrentCycle)
+       
+    @log_time
+    # Edit a specified workflow
+    def editWorkflowWF(self, workflowName, title="", owner="", save=True):
+        edit_lk = '//div[@id="middle_column"]//a[@href="#editAssessmentStandAlone" and @title="Edit"]'
+        my_title = '//div[@id="editAssessmentStandAlone"]//input[@name="title"]'
+        my_owner = '//div[@id="editAssessmentStandAlone"]//input[@name="lead_email"]' 
+        cancel_bt = '//div[@id="editAssessmentStandAlone"]//div[@class="deny-buttons"]/a'
+        save_bt = '//a[@id="saveAssessment"]'
+                
+        self.navigateToMenuItemWF(workflowName, "Work Info")
+        self.util.clickOn(edit_lk)
+        self.util.waitForElementToBePresent(my_title, 8)
         
+        self.util.inputTextIntoField(title, my_title)
+        self.util.inputTextIntoField(owner, my_owner)
+        
+        # TODO add more other fields to support regression automation
+        
+        if save==True:
+            self.util.clickOn(save_bt)
+        else:
+            self.util.clickOn(cancel_bt)
+    
+    
+    
     
     
     @log_time
@@ -386,6 +455,7 @@ class WorkFlowHelper(Helpers):
         clone_workflow_bt = '//a[@href="#cloneWorkflow"]'
         cancel_bt = '//div[@id="cloneWorkflow"]//div[@class="deny-buttons"]/a'
         save_bt = '//a[@id="cloneWorkflowSave"]'
+        
         
         myTitle = '//div[@id="cloneWorkflow"]//input[@name="title"]'
         myOwner = '//div[@id="cloneWorkflow"]//input[@name="lead_email"]'
@@ -415,9 +485,68 @@ class WorkFlowHelper(Helpers):
         else:
             self.util.clickOn(save_bt)
             
+    @log_time
+    # Prerequisite:  Add objects to workflow window is already up.  Add New Rule link is already there
+    # Set add=False, to test the Cancel feature
+    def addNewRule(self, object_type, relevantTo, searchItem, add=True, selectAll=False):
+        select_all_drdn = '//select[@id="objects_type"]'
+        add_new_rule_lk = '//a[@id="addFilterRule"]'
+        relevant_to_drdn = '//div[@id="objectSelector"]//div[@class="indent-row"]//select'
+        search_txtbx = '//div[@class="objective-selector"]//input[@class="input-large search-icon"]'
+        search_bt = '//a[@id="objectReview"]'
+        add_selected_bt = '//a[@id="addSelected"]'
+        cancel_bt = '//div[@id="objectSelector"]//div[@class="deny-buttons"]'
+        task_table = '//div[@class="tree-title-area"]/span/strong'
         
+        self.util.selectFromDropdownByValue(select_all_drdn, object_type)
+        self.util.clickOn(add_new_rule_lk)
+        self.util.selectFromDropdownByValue(relevant_to_drdn, relevantTo)
+        self.util.inputTextIntoField(searchItem, search_txtbx)
         
+        self.util.clickOn(search_bt)
+        
+        # TODO add feature to select search for the named item, and click its checkbox, or select all checkboxes
+        
+        if selectAll == True:
+            self.util.clickOn(add_selected_bt)  # just click on the button
+        else:
+            count = self.util.countChildren(task_table) 
+            idex = count.index(' ')
+            count = count[0:idex]
             
+            print "count: " + count
+            
+            for x in range(2, count):
+                xpath = task_table + '/li[' + x + ']//div[@class="tree-title-area"]/i'
+                title = self.util.getTextFromXpathString(xpath)
+                print "title: " + title
+                if title == searchItem:  # if found, click on the checkbox next to it
+                    self.util.clickOn(task_table + '//input[@type="checkbox"]')  # check it
+                    break  # get out
+        
+        self.util.clickOn(add_selected_bt)
+        return True 
+        
+        
+        
+        if add==True:
+            self.util.clickOn(add_selected_bt)
+        else:
+            self.util.clickOn(cancel_bt)
+
+    @log_time
+    # End the current cycle.  
+    def endCycle(self):
+        # select Current Cycle -> End Cycle
+        end_cycle_bt = '//button[@class="btn end-cycle"]'
+        
+        self.selectInnerNavMenuItemWF("Current Cycle")
+        self.util.waitForElementToBePresent(end_cycle_bt, 8)
+        self.util.clickOn(end_cycle_bt)
+        
+        
+        
+        
             
             
             

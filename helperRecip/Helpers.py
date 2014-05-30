@@ -256,18 +256,18 @@ class Helpers(unittest.TestCase):
         print "Object created successfully."
         
 
-    @log_time
+    # @log_time
     # @author: Ukyo. Create program with input parameter as object
     # usage:  do.createDetailedObject(standard_object, "Standard")
     # you can add 10 objects, say Standard1 .... Standard10 by setting loopManyTimes=10
-    def createObjectIncrementingNaming(self, myObject, object_type="", loopManyTimes=0, private_checkbox="unchecked", open_new_object_window_from_lhn = True, owner=""):
+    def createObjectIncrementingNaming(self, myObject, object_type="", loopManyTimes=0, firstEntryName="", private_checkbox="unchecked", open_new_object_window_from_lhn = True, owner=""):
         self.closeOtherWindows()
                         
         #in the standard create object flow, a new window gets open via Create link in the LHN, in audit tests the new object gets created via + link, and that's why
         #openCreateNewObjectWindowFromLhn have to be skipped
         if open_new_object_window_from_lhn:
             self.openCreateNewObjectWindowFromLhn(object_type) 
-        self.populateNewDetailedObjectDataIncrementing(myObject, object_type, loopManyTimes)
+        self.populateNewDetailedObjectDataIncrementing(myObject, object_type, loopManyTimes, firstEntryName)
 
         
 
@@ -352,11 +352,11 @@ class Helpers(unittest.TestCase):
        # self.util.inputTextIntoField(myObject.program_elements.get("description"), elem.object_description)
 
 
-    # @log_time
+    @log_time
     # @author: Ukyo
     # Create title composing "object type" concatenated with a number, if it already exist, a next higher number is used until 1000
     # PRE-REQUISITE:  myObject['title'] should start with object type, e.g., Program, Standard, or Objective...
-    def populateNewDetailedObjectDataIncrementing(self, myObject, object_type, loopManyTimes=0, pol_reg_std="Standard1"):
+    def populateNewDetailedObjectDataIncrementing(self, myObject, object_type, loopManyTimes=0, pol_reg_std=""):
         title = object_type
         
         self.closeOtherWindows()
@@ -371,7 +371,7 @@ class Helpers(unittest.TestCase):
         
         # if there already exist the duplicate title, use a next higher number
         for number in range(1, 1000):
-            self.util.inputTextIntoField(title + str(number), elem.object_title)
+            self.util.inputTextIntoField(title + "-auto-test" + self.getTimeId(), elem.object_title)
                   
             frame_element = elem.object_iFrame.replace("FRAME_NAME","description")
             self.util.waitForElementToBeVisible(frame_element)                
@@ -398,7 +398,7 @@ class Helpers(unittest.TestCase):
                 
                 
             self.util.clickOn(elem.modal_window_save_button)
-            time.sleep(5);
+            time.sleep(3);
 
             if (self.util.isElementVisible(elem.title_duplicate_warning) == False):
                 self.util.waitForElementNotToBePresent(elem.modal_window, 2)
@@ -526,6 +526,24 @@ class Helpers(unittest.TestCase):
         self.assertTrue(self.util.waitForElementToBePresent(object_title_link), "ERROR inside navigateToObject(): do not see object  " + object_title_link + " in lhn" )       
         result=self.util.clickOn(object_title_link)
         self.assertTrue(result,"ERROR in navigateToObject(): could not click on object in LHN "+object_title_link)
+
+    #@log_time
+    def getFirstItemFromASection(self, section):
+        # Wait for the object section link to appear in the left nav (e.g. Programs, Products, Policies, etc.)
+        self.uncheckMyWorkBox()
+        object_left_nav_section_object_link = elem.left_nav_expand_object_section_link.replace("OBJECT", section)
+        self.assertTrue(self.util.waitForElementToBePresent(object_left_nav_section_object_link),"ERROR in navigateToObject(): can't see LHN link for "+section)
+
+        # Click on the object section link in the left nav
+        self.util.clickOn(object_left_nav_section_object_link)
+        
+        
+        self.util.waitForElementToBeVisible(str(elem.first_item_from_a_section).replace("OBJECT", section), 8)
+        
+        first_item_name = self.util.getTextFromXpathString(str(elem.first_item_from_a_section).replace("OBJECT", section))
+
+        return first_item_name
+
 
     @log_time
     def showObjectLinkWithSearch(self, search_term, section):
@@ -724,6 +742,7 @@ class Helpers(unittest.TestCase):
         self.util.inputTextIntoFieldAndPressEnter("", elem.search_inputfield)
         self.ensureLHNSectionExpanded(object)
         first_link_of_the_section_link = elem.left_nav_first_object_link_in_the_section.replace("SECTION",object )
+        print "DEBUG: " + first_link_of_the_section_link
         self.assertTrue(self.util.waitForElementToBePresent(first_link_of_the_section_link), "ERROR inside mapAObjectLHN(): cannot see the first "+ object+ " in LHN")
         idOfTheObject = self.getObjectIdFromHref(first_link_of_the_section_link)
        # print "the first "+ object + " id is " +  idOfTheObject
@@ -1245,7 +1264,7 @@ class Helpers(unittest.TestCase):
         #TODO search by name 
         self.util.clickOn(elem.expand_collapse_object_map_entry)
         
-        
+
         
         
         
