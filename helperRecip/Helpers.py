@@ -1264,12 +1264,50 @@ class Helpers(unittest.TestCase):
         #TODO search by name 
         self.util.clickOn(elem.expand_collapse_object_map_entry)
         
-
+    @log_time
+    # Select an action to perform (Logout?  Admin Dashboard?
+    def adminMenuTopRight(self, option):
+       
+        if option == "My Work":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[1]')
+        elif option == "Admin Dashboard":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[2]')
+        elif option == "Reset Layout to Default":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[3]')
+        elif option == "Set Layout as Default":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[4]')
+        elif option == "Logout":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[5]')        
+        
+    @log_time
+    # select menu items on inner nav on Admin Dashboard
+    def selectMenuItemInnerNavDashBoard(self, item):
+        
+        xpath = '//ul[@class="nav internav  cms_controllers_inner_nav ui-sortable"]'
+        
+        if item=="People":
+            self.util.clickOn(xpath + "/li[1]")
+        elif item=="Roles":
+            self.util.clickOn(xpath + "/li[2]")
+        elif item=="Events":
+            self.util.clickOn(xpath + "/li[3]")        
         
         
+    @log_time
+    # Return correct count of people
+    # theObject is a singular form, e.g., Person, Objective, Standard, etc. 
+    def countOfAnyObjectLHS(self, theObject):
+        xpath = '//a[contains(@data-object-singular,"OBJECT")]/small/span'
+        xpath = xpath.replace("OBJECT", theObject)
+        self.util.waitForElementToBePresent(xpath, 8)
+        
+        return (self.util.getTextFromXpathString(xpath))
+    
         
         
-        
-        
-        
+    
+    
+    
+    
+    
         
