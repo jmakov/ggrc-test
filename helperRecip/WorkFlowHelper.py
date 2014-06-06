@@ -11,14 +11,9 @@ All public functions have "WF" as a post-fix to signify that the function is not
 '''
 
 from datetime import datetime
-from lib2to3.tests.support import driver
 import time
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
-
 from helperRecip.Helpers import Helpers, log_time
-
 
 class WorkFlowHelper(Helpers):
     
