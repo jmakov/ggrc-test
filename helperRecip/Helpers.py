@@ -1266,7 +1266,7 @@ class Helpers(unittest.TestCase):
         
     @log_time
     # Select an action to perform (Logout?  Admin Dashboard?
-    def adminMenuTopRight(self, option):
+    def selectMenuInTopRight(self, option):
        
         if option == "My Work":
             self.util.clickOn('//ul[@class="dropdown-menu"]/li[1]')
@@ -1303,7 +1303,94 @@ class Helpers(unittest.TestCase):
         
         return (self.util.getTextFromXpathString(xpath))
     
+    @log_time
+    # Add person in Admin DashBoard and return True if successful, otherwise return False
+    # To test Cancel, just set Save=False
+    def addPersonInAdminDB(self, name="", email="", company="", Save=True):
         
+        # "Add Person" button is one count higher than count from inspecting element
+        index = self.countOfAnyObjectLHS("Person") + 1
+       
+        add_person_bt = '//section[@id="people_list_widget"]//ul[@class="tree-structure new-tree"]/li[index]'
+        pName_txtbx = '//input[@id="person_name"]'
+        pEmail_txtbx = '//input[@id="person_email"]'
+        pCompany_txtbx = '//input[@id="person_company"]'
+        save_bt = '//div[@class="confirm-buttons"]//a[@data-toggle="modal-submit"]'
+        cancel_bt = '//div[@class="deny-buttons"]//a'
+        
+        self.util.waitForElementToBePresent(add_person_bt, 10)
+        self.util.clickOn(add_person_bt)
+        self.util.waitForElementToBeVisible(pName_txtbx, 10)  
+        self.util.inputTextIntoField(name, pName_txtbx)
+        self.util.inputTextIntoField(email, pEmail_txtbx)
+        self.util.inputTextIntoField(company, pCompany_txtbx)
+        
+        countBefore = self.countOfAnyObjectLHS("Person")
+        
+        if Save==True:
+            self.util.clickOn(save_bt)
+        else:
+            self.util.clickOn(cancel_bt)
+        
+        self.util.waitForElementToBeVisible(add_person_bt, 10)
+        countAfter = self.countOfAnyObjectLHS("Person")         
+                                            
+        if (countAfter == countBefore+1):
+            return True
+        else:
+            return False
+    
+    
+    @log_time
+    # Search for person and return True if found, otherwise return False    
+    def searchPersonInAdminDB(self, personName):
+        xpath = '//section[@id="people_list_widget"]//ul[@class="tree-structure new-tree"]'
+        
+        count = self.countOfAnyObjectLHS("Person") + 1
+        
+        for x in range (1,count):
+            if (personName == self.util.getTextFromXpathString(xpath.replace("INDEX", count))):
+                return True
+            else:
+                continue
+        
+    @log_time
+    # Expand person row if found and return its index   
+    def _expandPersonInAdminDB(self, personName):
+        xpath = '//section[@id="people_list_widget"]//ul[@class="tree-structure new-tree"]'
+        
+        count = self.countOfAnyObjectLHS("Person") + 1
+        
+        for index in range (1,count):
+            myXPath = xpath.replace("INDEX", index)
+            if (personName == self.util.getTextFromXpathString(myXPath)):
+                self.util.clickOn(myXPath) #click on it to expand
+                return index
+    @log_time
+    # It will seach for the person name and click Edit Authorization link from it  
+    # Pre-condition: you are already on the Admin Dashboard view
+    def clickOnEditAuthorization(self, personName):
+        index = self._expandPersonInAdminDB(personName)
+        
+        edit_auth = '//div[@id="middle_column"]//ul[@class="tree-structure new-tree tree-open"]/li[' + index + ']//a[@data-original-title="Edit Authorizations"]'
+        self.util.waitForElementToBeVisible(edit_auth, 15)
+        self.util.clickOn(edit_auth)
+        
+    @log_time
+    # It will seach for the person name and click Edit Person link from it 
+    # Pre-condition: you are already on the Admin Dashboard view 
+    def clickOnEditPerson(self, personName):
+        index = self._expandPersonInAdminDB(personName)
+        
+        edit_person = '//div[@id="middle_column"]//ul[@class="tree-structure new-tree tree-open"]/li[' + index + ']//a[@data-original-title="Edit Person"]'
+        self.util.waitForElementToBeVisible(edit_person, 15)
+        self.util.clickOn(edit_person)
+    
+        
+        
+    
+                    
+            
         
     
     
