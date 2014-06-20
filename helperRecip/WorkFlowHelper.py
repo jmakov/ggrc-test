@@ -74,6 +74,7 @@ class WorkFlowHelper(Helpers):
 
     @log_time
     # Return true if addTask succeed and not error out
+    # If taskName is blank, it will auto assign a unique name, e.g, Task-auto + timestamp
     def addTaskWF(self, taskName="", selectAll=False): 
         add_task_lk = '//a[@href="#objectSelector" and @data-mapping="tasks"]' 
         checkboxAll_chbx = '//input[@id="objectAll"]'
@@ -101,15 +102,18 @@ class WorkFlowHelper(Helpers):
            
            
     @log_time
-    # Create a new task from a window popped up by "add task".  That means the window must be up already before this 
-    # function can be used.
+    # Create a new task from a window popped up by "add task" and return the task name if in auto create mode
+    # Pre-condition: the window must already be up
     # To test the Cancel feature, set save=False
-    def createNewTaskWF(self, title, detail_description, save=True):
+    def createNewTaskWF(self, title="", detail_description, save=True):
         create_task_bt = '//a[@class="btn btn-add addTaskModal"]'
         summary_title_txtbx = '//input[@id="task-title"]'
         detail_txtbx = '//div[@id="newTask"]//textarea[@id="program_description"]'
         save_bt = '//a[@id="addTask"]' 
         cancel_bt = '//a[@id="addTask"]/../../../div/div/a[@data-dismiss="modal"]'
+          
+        if title == "":
+            title = "Task-auto-" + self.getTimeId()
            
         self.util.clickOn(create_task_bt)
         self.util.inputTextIntoField(title, summary_title_txtbx)
@@ -118,6 +122,8 @@ class WorkFlowHelper(Helpers):
             self.util.clickOn(save_bt)
         else:
             self.util.clickOn(cancel_bt)
+            
+        return title
            
                 
     @log_time
@@ -127,6 +133,8 @@ class WorkFlowHelper(Helpers):
         checkboxAll_chbx = '//input[@id="objectAll"]'
         addSelected_bt = '//a[@id="addSelected"]'
         task_table = '//div[@id="objectSelector"]/div[@class="results"]//ul'
+        
+        
         
         if selectAll == True:
             self.util.clickOn(addSelected_bt)  # just click on the button
@@ -343,31 +351,73 @@ class WorkFlowHelper(Helpers):
                 break
             else:
                 continue
+            
+    @log_time
+    # Return true if a named workflow exists, otherwise return false
+    def doesWorkflowExist(self, wfName):
+        workflow_menu  = '//li[@class="programs accordion-group workflow-group"]'
+        workflow_items = '//li[@class="programs accordion-group workflow-group"]/ul[@class="sub-level"]/li[INDEX]//span'
+        count_xpath = '//li[@class="programs accordion-group workflow-group"]//span[@class="item-count"]'
+        
+        self.util.clickOn(workflow_menu) # click on WorkFlow to expand it
+        
+        count = self.util.getTextFromXpathString(count_xpath)
+        
+        for x in count:
+            label_text = self.util.getTextFromXpathString(workflow_items.replace("INDEX", x)) # click on WorkFlow to expand it
+            
+            if wfName==label_text:
+                return True
+            else:
+                continue
+        
+        return False        
+        
+    
        
     @log_time
     # Create a new work flow
-    def createWorkflow(self, wfName="", owner=""):
+    # If wfName is blank, it automatically create WF-auto + a timestamp, and return it
+    def createWorkflow(self, wfName="", owner="", theFrequency):
         # TODO include more elements testing to support regression automation
         
         workflow_menu_lk  = '//li[@class="programs accordion-group workflow-group"]'
         workflow_items_lk = '//li[@class="programs accordion-group workflow-group"]/ul[@class="sub-level"]/li[INDEX]//span'
         wf_create_new_lk = '//li[@class="programs accordion-group workflow-group"]//li[@class="add-new"]'
+        frequency_drdn = '//select[@id="frequency"]'
         
         title_txtbx = '//div[@id="editAssessmentStandAlone"]//input[@class="input-block-level required"]'
         owner_txtbx = '//div[@id="editAssessmentStandAlone"]//input[@name="lead_email"]'
         save_bt = '//a[@id="saveAssessment"]'
+               
+        if (wfName == ""):
+            wfName = "WF-auto-" + self.getTimeId()
+               
                
         self.selectCreateNew()
        
         self.util.waitForElementToBePresent(title_txtbx, 8)
         self.util.inputTextIntoField(wfName, title_txtbx)
         self.util.inputTextIntoField(owner, owner_txtbx)
+        self.util.selectFromDropdownByValue(frequency_drdn, theFrequency)
         self.util.clickOn(save_bt)
+        time.sleep(2)
+        
+        return wfName
            
      
-    #click on Create New link
+    #click on Create New (Workflow) link
     def selectCreateNewWF(self):
         wf_create_new_lk = '//li[@class="programs accordion-group workflow-group"]//li[@class="add-new"]'
+      
+    #click on Create New (Task) link 
+    def pressCreateNewTaskLinkWF(self):
+        expandTask_lhs = '//....'
+        wf_create_new_lk = '//li[@class="programs accordion-group workflow-group"]//li[@class="add-new"]'      
+      
+        self.util.clickOn(expandTask_lhs)
+        self.util.waitForElementToBeClickable(wf_create_new_lk, 5)
+      
       
     def selectAWorkflowWF(self, workflowName):
         workflow_items_lk = '//li[@class="programs accordion-group workflow-group"]/ul[@class="sub-level"]/li[INDEX]//span'
@@ -377,7 +427,7 @@ class WorkFlowHelper(Helpers):
             if str == workflowName:
                 self.util.clickOn(workflow_items_lk.replace("INDEX", index))
        
-    def workflowCountOnHLS(self):   
+    def countWorkflowOnHLS(self):   
        wf_count = '//li[@class="programs accordion-group workflow-group"]/a/small/span'
        
        return  self.util.getTextFromXpathString(wf_count)
@@ -539,8 +589,29 @@ class WorkFlowHelper(Helpers):
         self.util.waitForElementToBePresent(end_cycle_bt, 8)
         self.util.clickOn(end_cycle_bt)
         
+    @log_time
+    # Count the total of Objects in WF and return the number.
+    # If count is messed up, just return 911
+    def countObjectsWF(self): 
+        cnt_xpath_from_widget = '//span[@id="objectsCounter"]'
+        cnt_xpath_from_innerNav = '//span[@id="objectsMainCounter"]'
+        
+        count_from_innerNav = self.util.getTextFromXpathString(cnt_xpath_from_innerNav) # count
+        count_from_widget = str(self.util.getTextFromXpathString(cnt_xpath_from_widget)) # (count); filter out parenthesis
+        index = count_from_widget.index(")")
+        count_from_widget = count_from_widget[1:index]
+        
+        if count_from_innerNav == count_from_widget:
+            return count_from_innerNav
+        else:
+            return 911
         
         
+         
+        
+        
+        
+    
         
             
             
