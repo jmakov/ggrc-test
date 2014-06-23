@@ -229,3 +229,21 @@ Evidence of this should be provided as Screenshots
         #select_file_button = '//div[contains(@id,"select-files-button")]//input[@type="file"]'
         select_file_button = '//input[@type="file"]'
         upload_file_button ='//div[@id="picker:ap:0"]'
+        new_person_name = '//input[@id="person_name"]'
+        new_person_email = '//input[@id="person_email"]'
+        new_person_company = '//input[@id="person_company"]'
+        modal_window_cancel_button='//div[@class="deny-buttons"]/a'
+        expand_collapse_widget_first_row = '//li[1]//div[@class="tree-title-area"]'
+        edit_section_link_from_inner_mapping = '//a[@href="javascript://" and @title="Edit Section"]'
+  
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

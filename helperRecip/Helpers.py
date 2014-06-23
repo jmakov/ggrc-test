@@ -4,20 +4,29 @@ Created on Jun 19, 2013
 @author: diana.tzinov
 '''
 
+
+
+
+
 from datetime import date, timedelta, datetime as dt
 import datetime
+from fileinput import close
+from findertools import move 
 import json
 import os
+from posix import remove
 import string
 import sys
+from tempfile import mkstemp
 from time import strftime
 import time, calendar
 import unittest
 
+from selenium.webdriver.common.by import By
+
 from Elements import Elements as elem
 from WebdriverUtilities import WebdriverUtilities
 import config
-from selenium.webdriver.common.by import By
 from testcase import WebDriverTestCase
 
 
@@ -1040,3 +1049,424 @@ class Helpers(unittest.TestCase):
         self.util.clickOn('//a[@class="close"]')
         self.closeOtherWindows()
         
+    @log_time
+    #Create a new person object from the LHN
+    def createPeopleLHN(self, grcObject, save=True):
+        self.util.waitForElementToBePresent(elem.new_person_name)
+        self.util.inputTextIntoField(grcObject.people_elements.get("name"), elem.new_person_name)
+        self.util.inputTextIntoField(grcObject.people_elements.get("email"), elem.new_person_email)
+        self.util.inputTextIntoField(grcObject.people_elements.get("company"), elem.new_person_company)
+        
+        # default to save, unless you want to test the Cancel button
+        if save==True: 
+            self.util.clickOn(elem.modal_window_save_button)
+        else:
+            self.util.clickOn(elem.modal_window_cancel_button)
+            
+    #@log_time
+    # + Section button is already visible and displayed         
+    def createSectionFromInnerNavLink(self, theName="mySectionX"):
+        self.navigateToMappingWindowForObject(self, theName, theName)
+        self.populateNewObjectData(theName)
+        #self.populateNewObjectData(ggrcObject.section_elements.get("title"), ggrcObject.section_elements.get("owner"))
+        self.saveNewObjectAndWait()
+            
+            
+#     @log_time
+#      From Inner Nav panel, with Section already created, just click on a section to do objective mapping
+#     def mapObjectToSectionFromInnerNav(self, theName):
+#         expand the section item
+#         self.util.clickOn(elem.first_item_section_link_from_nav)
+#         self.util.waitForElementToBePresent(elem.map_object_to_section_from_nav)
+#         self.util.hoverOver(elem.map_object_to_section_from_nav)
+#         self.util.clickOn(elem.map_object_to_section_from_nav)
+        
+       
+       
+    # This is from, Program -> Regulation -> Section -> Object 
+    # objectCategory = {Control, Objective, DataAsset, Facility, Market, Process, Product, Project, System, Person, OrgGroup}     
+    def mapObjectFormFilling(self, objectCategory, searchTerm):      
+        map_bt = '//div[@class="confirm-buttons"]//a'
+        cancel_bt = '//div[@class="deny-buttons"]//a'
+        
+        self._searchInMapObjectModalWindow(objectCategory, searchTerm)
+        self.util.clickOn(map_bt)
+
+    # Specify a category label, and title to search
+    def _searchInMapObjectModalWindow(self, label, title):
+        xpath = '//select[@class="input-block-level option-type-selector"]//'
+
+        # click on the dropdown for category
+        if label == "Objectives":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')
+        elif label == "Controls":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')
+        elif label == "Data Assets":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')
+        elif label == "Facilities":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')
+        elif label == "Org Groups":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')            
+        elif label == "":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')            
+        elif label == "Markets":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')
+        elif label == "Processes":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')            
+        elif label == "Products":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')             
+        elif label == "Projects":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')
+        elif label == "Systems":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')            
+        elif label == "People":
+            self.util.clickOn(xpath + '/option[@label=' + label + ']')     
+        
+        self.util.inputTextIntoField(title, '//input[@id="search"]')      
+
+            
+            
+            
+            
+            
+             
+
+
+    #log_time
+    # Unmap from object (third) level:  from this scheme, Program->Regulation->Section->Object
+    def unMapObjectFromWidgetIn3rdLevel(self, title):
+            self._searchObjectIn3rdLevelAndClickOnIt(title)
+        
+    @log_time
+    # Return xpath of row for this item if found else return False
+    def _searchObjectIn3rdLevelAndClickOnIt(self, title):
+
+        # to find out how many rows
+        for x in range(500):
+            xpath = '//li[@class="tree-item cms_controllers_tree_view_node" and @data-object-id="' + x + '"]'
+            try:
+                self.driver.find_element_by_xpath(xpath)
+                continue
+            except:
+                return x
+            
+        # x is the number of count
+        
+        for row in range(x):
+            xp = '//li[@class="tree-item cms_controllers_tree_view_node" and @data-object-id="' + row + '"]//span[@class="person-tooltip-trigger"]'
+            atitle = self.util.getTextFromXpathString(xp)
+            if atitle == title:
+                #found it so click the row not the link
+                self.util.clickOn('//li[@class="tree-item cms_controllers_tree_view_node" and @data-object-id="' + row + '"]')
+                
+            
+            
+        
+        
+        
+        
+    #log_time
+    # This delete function is to be used in the case, e.g., Program->Regulation->Section, and now you want to delete "Section"
+    # TODO search for the named section item and delete it, for now just the first item
+    def deleteObjectFromSectionAfterMapping(self):
+        self.util.waitForElementToBePresent(elem.edit_section_link_from_inner_mapping, 5)
+        self.util.clickOn(elem.edit_section_link_from_inner_mapping)
+        self.deleteObject()
+        
+    #log_time
+    # Program->Regulation: now you want to expand the regulation "theItem", for example    
+    def expandFirstItemWidget(self, theItem=""):
+        #TODO search by name 
+        self.util.waitForElementToBeVisible(elem.expand_collapse_widget_first_row, 8)
+        self.util.clickOn(elem.expand_collapse_widget_first_row)
+         
+           
+        
+    @log_time
+    # Select an action to perform (Logout?  Admin Dashboard?
+    def selectMenuInTopRight(self, option):
+       
+        if option == "My Work":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[1]')
+        elif option == "Admin Dashboard":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[2]')
+        elif option == "Reset Layout to Default":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[3]')
+        elif option == "Set Layout as Default":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[4]')
+        elif option == "Logout":
+            self.util.clickOn('//ul[@class="dropdown-menu"]/li[5]')        
+        
+    @log_time
+    #Select menu items on inner nav on Admin Dashboard
+    def selectMenuItemInnerNavDashBoard(self, item):
+        
+        xpath = '//ul[@class="nav internav  cms_controllers_inner_nav ui-sortable"]'
+        
+        if item=="People":
+            self.util.clickOn(xpath + "/li[1]")
+        elif item=="Roles":
+            self.util.clickOn(xpath + "/li[2]")
+        elif item=="Events":
+            self.util.clickOn(xpath + "/li[3]")        
+        
+        
+    @log_time
+    # Return correct count of people
+    # theObject is a singular form, e.g., Person, Objective, Standard, etc. 
+    def countOfAnyObjectLHS(self, theObject):
+        xpath = '//a[contains(@data-object-singular,"OBJECT")]/small/span'
+        xpath = xpath.replace("OBJECT", theObject)
+        self.util.waitForElementToBePresent(xpath, 8)
+        
+        return (self.util.getTextFromXpathString(xpath))
+    
+    @log_time
+    # Add person in Admin DashBoard and return True if successful, otherwise return False
+    # To test Cancel, just set Save=False
+    def addPersonInAdminDB(self, name="", email="", company="", Save=True):
+        
+        # "Add Person" button is one count higher than count from inspecting element
+        index = self.countOfAnyObjectLHS("Person") + 1
+       
+        add_person_bt = '//section[@id="people_list_widget"]//ul[@class="tree-structure new-tree"]/li[index]'
+        pName_txtbx = '//input[@id="person_name"]'
+        pEmail_txtbx = '//input[@id="person_email"]'
+        pCompany_txtbx = '//input[@id="person_company"]'
+        save_bt = '//div[@class="confirm-buttons"]//a[@data-toggle="modal-submit"]'
+        cancel_bt = '//div[@class="deny-buttons"]//a'
+        
+        self.util.waitForElementToBePresent(add_person_bt, 10)
+        self.util.clickOn(add_person_bt)
+        self.util.waitForElementToBeVisible(pName_txtbx, 10)  
+        self.util.inputTextIntoField(name, pName_txtbx)
+        self.util.inputTextIntoField(email, pEmail_txtbx)
+        self.util.inputTextIntoField(company, pCompany_txtbx)
+        
+        countBefore = self.countOfAnyObjectLHS("Person")
+        
+        if Save==True:
+            self.util.clickOn(save_bt)
+        else:
+            self.util.clickOn(cancel_bt)
+        
+        self.util.waitForElementToBeVisible(add_person_bt, 10)
+        countAfter = self.countOfAnyObjectLHS("Person")         
+                                            
+        if (countAfter == countBefore+1):
+            return True
+        else:
+            return False
+    
+    
+    @log_time
+    # Search for person and return True if found, otherwise return False    
+    def searchPersonInAdminDB(self, personName):
+        xpath = '//section[@id="people_list_widget"]//ul[@class="tree-structure new-tree"]'
+        
+        count = self.countOfAnyObjectLHS("Person") + 1
+        
+        for x in range (1,count):
+            if (personName == self.util.getTextFromXpathString(xpath.replace("INDEX", count))):
+                return True
+            else:
+                continue
+        
+    @log_time
+    # Expand person row if found and return its index   
+    def _expandPersonInAdminDB(self, personName):
+        xpath = '//section[@id="people_list_widget"]//ul[@class="tree-structure new-tree"]'
+        
+        count = self.countOfAnyObjectLHS("Person") + 1
+        
+        for index in range (1,count):
+            myXPath = xpath.replace("INDEX", index)
+            if (personName == self.util.getTextFromXpathString(myXPath)):
+                self.util.clickOn(myXPath) #click on it to expand
+                return index
+    @log_time
+    # It will seach for the person name and click Edit Authorization link from it  
+    # Pre-condition: you are already on the Admin Dashboard view
+    def clickOnEditAuthorization(self, personName):
+        index = self._expandPersonInAdminDB(personName)
+        
+        edit_auth = '//div[@id="middle_column"]//ul[@class="tree-structure new-tree tree-open"]/li[' + index + ']//a[@data-original-title="Edit Authorizations"]'
+        self.util.waitForElementToBeVisible(edit_auth, 15)
+        self.util.clickOn(edit_auth)
+        
+    @log_time
+    # It will seach for the person name and click Edit Person link from it 
+    # Pre-condition: you are already on the Admin Dashboard view 
+    def clickOnEditPerson(self, personName):
+        index = self._expandPersonInAdminDB(personName)
+        
+        edit_person = '//div[@id="middle_column"]//ul[@class="tree-structure new-tree tree-open"]/li[' + index + ']//a[@data-original-title="Edit Person"]'
+        self.util.waitForElementToBeVisible(edit_person, 15)
+        self.util.clickOn(edit_person)
+        
+    
+    #@log_time
+    # Change username and email in the log_in text file
+    def changeUsernameEmail(self, usernameOld, usernameNew, emailOld, emailNew, filePath):
+        
+        # format looks like this in noop.py file
+        oldUsername = "default_user_name = \'" + usernameOld + "\'"
+        oldEmail =    "default_user_email = \'" + emailOld + "\'"
+        newUsername = "default_user_name = \'" + usernameNew + "\'\n"  #add new line
+        newEmail =    "default_user_email = \'" + emailNew + "\'\n"
+        
+        #Create temp file
+        fh, abs_path = mkstemp()
+        new_file = open(abs_path,'w')
+        old_file = open(filePath)
+        
+        for line in old_file:
+            if oldUsername in line:
+                line = newUsername
+                   
+            elif oldEmail in line:
+                line = newEmail
+            
+            sys.stdout.write(line)
+            new_file.write(line)
+            
+        new_file.close()
+        close(fh)
+        old_file.close()
+        #Remove original file
+        remove(filePath)
+        #Move new file
+        move(abs_path, filePath)
+        
+    @log_time
+    # Return true if data is logged to Event Log Table
+    # By default, top row (index=0) is selected 
+    def verifyInfoInEventLogTable(self, text2Match, index=0):
+        
+        xpath = '//ul[@class="tree-structure new-tree event-tree"]/li[' + index + ']//div[@class="tree-title-area"]'
+        text = self.util.getTextFromXpathString(xpath)
+        
+        if text2Match in text:
+            return True
+        else:
+            return False
+        
+    
+    @log_time
+    # Create a rolein Admin DashBoard and return True if successful, otherwise return False
+    # To test Cancel, just set Save=False
+    def createRoleInAdminDB(self, role, desc="",Save=True):  #TODO expand more
+        
+        # "Add Person" button is one count higher than count from inspecting element
+        index = self.countOfAnyObjectLHS("Person") + 1
+       
+        role_txtbx = '//input[@class="input-block-level"]'
+        desc_txtbx = '//ul[@id="role_description-wysihtml5-toolbar"]/../iframe'
+        
+        save_bt = '//a[@data-toggle="modal-submit"]'
+        cancel_bt = '//a[@data-dismiss="modal-reset"]'
+        
+        self.util.inputTextIntoField(role, role_txtbx)
+        self.util.inputTextIntoField(desc, desc_txtbx)
+        
+        if Save==True:
+            self.util.clickOn(save_bt)
+            return True
+        else:
+            self.util.clickOn(cancel_bt)
+            return False
+            
+    @log_time
+    # Return number of counts for Roles
+    def roleCount(self):
+        xpath = '//section[@id="roles_list_widget"]/header/div/div//span[1]'  #e.g., (7)
+        
+        text = self.util.getTextFromXpathString(xpath)
+        index = xpath.index(")")
+        
+        count = text[1:index]
+        
+        return count
+    
+    @log_time
+    # Return true if export successfully
+    # Pre-condition: You are already in Admin Board.  Same for the other export functions
+    # what2Export is one of these:  System, Process, People, Help
+    def exportFile(self, what2Export):
+        
+        imp_exp_xpath = '//div[@id="page-header"]/..//div[2]//a[@data-toggle="dropdown"]'
+        
+        system_exp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="/admin/export/system"]'
+        process_exp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="/admin/export/process"]'
+        people_exp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="/admin/export/people"]'
+        help_exp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="/admin/export/help"]'
+        
+        success_popup = '//div[@class="alert alert-success"]/span'
+        close_popup = '//div[@class="alert alert-success"]/a'
+        
+        self.util.waitForElementToBeVisible(imp_exp_xpath, 10)
+        self.util.clickOn(imp_exp_xpath)
+        
+        if what2Export=="System":       
+            self.util.waitForElementToBeVisible(system_exp_link, 10)
+            self.util.clickOn(system_exp_link)
+        elif what2Export=="Process":       
+            self.util.waitForElementToBeVisible(process_exp_link, 10)
+            self.util.clickOn(process_exp_link)    
+        elif what2Export=="People":       
+            self.util.waitForElementToBeVisible(people_exp_link, 10)
+            self.util.clickOn(people_exp_link)             
+        elif what2Export=="Help":       
+            self.util.waitForElementToBeVisible(help_exp_link, 10)
+            self.util.clickOn(help_exp_link)             
+            
+            
+        self.util.waitForElementToBeVisible(success_popup, 10)
+        text = self.util.getTextFromXpathString(success_popup)
+        
+        self.util.clickOn(close_popup)
+        
+        if text=="Export successful.":
+            return True
+        else:
+            return False   
+  
+    @log_time
+    # Return true if import successfully
+    # Pre-condition: You are already in Admin Board.  Same for the other export functions
+    # what2Import is one of these:  System, Process, People, Help
+    def importFile(self, what2Import, file2Import):
+        # TODO: HALF DONE, need to use AutoIt, and run this on Windows instead of Ubuntu
+        imp_exp_xpath = '//div[@id="page-header"]/..//div[2]//a[@data-toggle="dropdown"]'
+        
+        system_imp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="/systems/import"]'
+        process_imp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="processes/import"]'
+        people_imp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="/admin/import/people"]'
+        help_imp_link = '//div[@id="page-header"]/..//ul[@class="dropdown-menu"]/li//a[@href="/admin/import/help"]'        
+
+        choose_file_bt= '//input[@type="file"]'
+        upload_bt =  '//input[@type="submit"]'
+
+        proceed_with_caution_bt = '//input[@type="submit" and @value="Proceed with Caution"]'
+
+        self.util.waitForElementToBeVisible(imp_exp_xpath, 10)
+        self.util.clickOn(imp_exp_xpath)
+        
+        if what2Import=="System":       
+            self.util.waitForElementToBeVisible(system_imp_link, 10)
+            self.util.clickOn(system_imp_link)
+            # TODO NEED TO BE ABLE TO PICK FILE TO UPLOAD
+        elif what2Import=="Process":       
+            self.util.waitForElementToBeVisible(process_imp_link, 10)
+            self.util.clickOn(process_imp_link) 
+            # TODO NEED TO BE ABLE TO PICK FILE TO UPLOAD
+        elif what2Import=="People":       
+            self.util.waitForElementToBeVisible(people_imp_link, 10)
+            self.util.clickOn(people_imp_link)
+            # TODO NEED TO BE ABLE TO PICK FILE TO UPLOAD             
+        elif what2Import=="Help":  
+            # TODO NEED TO BE ABLE TO PICK FILE TO UPLOAD     
+            self.util.waitForElementToBeVisible(help_imp_link, 10)
+            self.util.clickOn(help_imp_link)             
+        
+
