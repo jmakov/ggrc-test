@@ -112,6 +112,8 @@ class WebdriverUtilities(unittest.TestCase):
             return True
         except:
             self.fail("ERROR: Element "+element + " not found in clickOnSave()")
+            
+            
 
     
        
