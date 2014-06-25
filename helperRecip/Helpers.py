@@ -15,27 +15,19 @@ from findertools import move
 import json
 from os import remove, close
 import os
-
-from posix import remove
+from shutil import move
 import string
 import sys
+
 from tempfile import mkstemp
-from shutil import move
 
 from time import strftime
 import time, calendar
 import unittest
-
 from selenium.webdriver.common.by import By
-
 from Elements import Elements as elem
 from WebdriverUtilities import WebdriverUtilities
 import config
-
-
-from selenium.webdriver.common.by import By
-
-
 from testcase import WebDriverTestCase
 
 
@@ -241,9 +233,8 @@ class Helpers(unittest.TestCase):
             #commented the verifycation for now
             last_created_object_link = self.verifyObjectIsCreatedInSections(grc_object_name)
         print "Object created successfully."
-
     
-    #@log_time
+    @log_time
     # @author: Ukyo. Create program with input parameter as object
     # usage:  do.createDetailedObject(standard_object, "Standard")
     def createDetailedObject(self, myObject, object_type="", private_checkbox="unchecked", open_new_object_window_from_lhn = True, owner=""):
@@ -352,8 +343,7 @@ class Helpers(unittest.TestCase):
         
         self.util.inputTextIntoField(object_title, elem.object_title)
 
-
-    #@log_time
+    @log_time
     def populateNewDetailedObjectData(self, myObject):
         self.closeOtherWindows()
         # Make sure window is there
@@ -574,6 +564,24 @@ class Helpers(unittest.TestCase):
 
 
     @log_time
+    def getFirstItemFromASection(self, section):
+        # Wait for the object section link to appear in the left nav (e.g. Programs, Products, Policies, etc.)
+        self.uncheckMyWorkBox()
+        object_left_nav_section_object_link = elem.left_nav_expand_object_section_link.replace("OBJECT", section)
+        self.assertTrue(self.util.waitForElementToBePresent(object_left_nav_section_object_link),"ERROR in navigateToObject(): can't see LHN link for "+section)
+
+        # Click on the object section link in the left nav
+        self.util.clickOn(object_left_nav_section_object_link)
+        
+        
+        self.util.waitForElementToBeVisible(str(elem.first_item_from_a_section).replace("OBJECT", section), 8)
+        
+        first_item_name = self.util.getTextFromXpathString(str(elem.first_item_from_a_section).replace("OBJECT", section))
+
+        return first_item_name
+
+
+    @log_time
     def showObjectLinkWithSearch(self, search_term, section):
         object_left_nav_section_object_link_with_one_result = elem.left_nav_expand_object_section_link_one_result_after_search.replace("OBJECT", section)
         self.util.waitForElementToBePresent(elem.left_nav_sections_loaded)  # due to quick-lookup bug
@@ -768,7 +776,7 @@ class Helpers(unittest.TestCase):
         id = href.split("/")[-1]
         return id
 
-    #@log_time
+    @log_time
     # Select a passed-in object category, e.g., "Standard", then select the first entry and map to it after the filtering by search
     def mapAObjectLHN(self, object):
         print "Start mapping LHN "+ object
@@ -1237,18 +1245,17 @@ class Helpers(unittest.TestCase):
         else:
             self.util.clickOn(elem.modal_window_cancel_button)
             
-    #@log_time
+    @log_time
     # + Section button is already visible and displayed         
     def createSectionFromInnerNavLink(self, theName="mySectionX"):
-
-        self.navigateToMappingWindowForObject(self, theName, theName)
+        self.util.waitForElementToBePresent(elem.section_add_link_from_inner_nav, 8)
+        self.util.hoverOver(elem.section_add_link_from_inner_nav)
+        self.util.clickOn(elem.section_create_link_from_inner_nav)
         self.populateNewObjectData(theName)
         #self.populateNewObjectData(ggrcObject.section_elements.get("title"), ggrcObject.section_elements.get("owner"))
         self.saveNewObjectAndWait()
             
-            
-
-    #@log_time
+    @log_time
     # From Inner Nav panel, with Section already created, just click on a section to do objective mapping
     def mapObjectToSectionFromInnerNav(self, theName):
         #expand the section item
@@ -1256,10 +1263,7 @@ class Helpers(unittest.TestCase):
         self.util.waitForElementToBePresent(elem.map_object_to_section_from_nav)
         self.util.hoverOver(elem.map_object_to_section_from_nav)
         self.util.clickOn(elem.map_object_to_section_from_nav)
-
-        
-       
-       
+              
     # This is from, Program -> Regulation -> Section -> Object 
     # objectCategory = {Control, Objective, DataAsset, Facility, Market, Process, Product, Project, System, Person, OrgGroup}     
     def mapObjectFormFilling(self, objectCategory, searchTerm):      
@@ -1302,15 +1306,7 @@ class Helpers(unittest.TestCase):
         
         self.util.inputTextIntoField(title, '//input[@id="search"]')      
 
-            
-            
-            
-            
-            
-             
-
-
-    #log_time
+    @log_time
     # Unmap from object (third) level:  from this scheme, Program->Regulation->Section->Object
     def unMapObjectFromWidgetIn3rdLevel(self, title):
             self._searchObjectIn3rdLevelAndClickOnIt(title)
@@ -1337,7 +1333,13 @@ class Helpers(unittest.TestCase):
                 #found it so click the row not the link
                 self.util.clickOn('//li[@class="tree-item cms_controllers_tree_view_node" and @data-object-id="' + row + '"]')
                 
-    #log_time
+            self.util.waitForElementToBePresent(elem.dropdown_from_map_object_window_OBJECT.replace("OBJECT", objectCategory))
+            self.util.clickOn(elem.dropdown_from_map_object_window_OBJECT.replace("OBJECT", objectCategory))
+            self.util.inputTextIntoField(searchTerm, elem.search_box_in_map_object)
+            self.util.clickOn(elem.list_of_items_to_select_from)
+            self.util.clickOn(elem.map_button_on_map_object_windown)
+
+    @log_time
     # Unmap from object (third) level or from regulation (second) level, from this scheme, Program->Regulation->Section->Object
     def unMapObjectFromWidget(self, object_level=True):
         if object_level==False:
@@ -1346,36 +1348,32 @@ class Helpers(unittest.TestCase):
             self.util.waitForElementToBePresent(elem.unmap_button_from_3rd_level_object, 8) 
             self.util.clickOn(elem.unmap_button_from_3rd_level_object)
         
-    #log_time
+    @log_time
     # This delete function is to be used in the case, e.g., Program->Regulation->Section, and now you want to delete "Section"
     # TODO search for the named section item and delete it
-
     def deleteObjectFromSectionAfterMapping(self):
         self.util.waitForElementToBePresent(elem.edit_section_link_from_inner_mapping, 5)
         self.util.clickOn(elem.edit_section_link_from_inner_mapping)
         self.deleteObject()
         
-    #log_time
-
+    @log_time
     # Program->Regulation: now you want to expand the regulation "theItem", for example    
     def expandFirstItemWidget(self, theItem=""):
         #TODO search by name 
         self.util.waitForElementToBeVisible(elem.expand_collapse_widget_first_row, 8)
         self.util.clickOn(elem.expand_collapse_widget_first_row)
          
-
     # Program->Regulation: now you want to expand the regulation "theItem" for example    
-    def expandItemWidget(self, theItem=""):
-        #TODO search by name 
+    def expandItemWidget(self):
+        #TODO search by name but now just the first row
         self.util.waitForElementToBeVisible(elem.item_from_list_widget, 8)
         self.util.clickOn(elem.item_from_list_widget)
                 
-    #log_time
+    @log_time
     # Program->Regulation: now you want to expand the regulation "theItem" for example    
     def expandMapObjectItemWidget(self, theItem=""):
         #TODO search by name 
         self.util.clickOn(elem.expand_collapse_object_map_entry)
-
         
     @log_time
     # Select an action to perform (Logout?  Admin Dashboard?
@@ -1499,8 +1497,7 @@ class Helpers(unittest.TestCase):
         self.util.waitForElementToBeVisible(edit_person, 15)
         self.util.clickOn(edit_person)
         
-    
-    #@log_time
+    @log_time
     # Change username and email in the log_in text file
     def changeUsernameEmail(self, usernameOld, usernameNew, emailOld, emailNew, filePath):
         
@@ -1664,5 +1661,3 @@ class Helpers(unittest.TestCase):
             self.util.waitForElementToBeVisible(help_imp_link, 10)
             self.util.clickOn(help_imp_link)             
         
-
-

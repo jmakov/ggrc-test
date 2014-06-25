@@ -238,9 +238,13 @@ Evidence of this should be provided as Screenshot
         #select_file_button = '//div[contains(@id,"select-files-button")]//input[@type="file"]'
         select_file_button = '//input[@type="file"]'
         upload_file_button ='//div[@id="picker:ap:0"]'
+<<<<<<< HEAD
         modal_window_cancel_button='//div[@class="deny-buttons"]/a'
         expand_collapse_widget_first_row = '//li[1]//div[@class="tree-title-area"]'
         edit_section_link_from_inner_mapping = '//a[@href="javascript://" and @title="Edit Section"]'
+=======
+        
+>>>>>>> b7cad6db1a01f20c2e7d6dcbfc788049e8a9bab7
         title_duplicate_warning = "//label[@class='help-inline warning']"
         new_person_name = '//input[@id="person_name"]'
         new_person_email = '//input[@id="person_email"]'
@@ -260,4 +264,11 @@ Evidence of this should be provided as Screenshot
         search_box_in_map_object = '//input[@id="search"]'
         expand_collapse_object_map_entry = '//div[@class="item-main"]//div[@class="item-data"]'
         first_item_from_a_section = '//ul[@class="top-level"]//li[contains(@data-model-name,"OBJECT")]/a/../div/ul/li[1]//span[@class="lhs-item"]'
+<<<<<<< HEAD
 
+=======
+        
+
+        
+        
+>>>>>>> b7cad6db1a01f20c2e7d6dcbfc788049e8a9bab7

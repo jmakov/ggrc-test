@@ -85,8 +85,7 @@ class SmokeTest(WebDriverTestCase):
         do.showHiddenValues()
         do.verifyObjectValues(grcobject.system_elements, grcobject.system_values)
         do.deleteObject()
-
-    
+  
 # mapping and un-mapping up to 3 levels: 
 
         #Program->Regulation->Section->Object
@@ -102,10 +101,6 @@ class SmokeTest(WebDriverTestCase):
         do.unMapObjectFromWidget(True) #unmap object
         do.deleteObjectFromSectionAfterMapping()
         do.unMapObjectFromWidget(False) #unmap regulation    
-    
-    
-
-
 
     # _ underscore prefix is a convention for internal use
     def _returnStringUpToFirstSpace(self, elem):
