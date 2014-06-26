@@ -399,9 +399,9 @@ class Helpers(unittest.TestCase):
     def showObjectLinkWithSearch(self, search_term, section):
         object_left_nav_section_object_link_with_one_result = elem.left_nav_expand_object_section_link_one_result_after_search.replace("OBJECT", section)
         self.util.waitForElementToBePresent(elem.left_nav_sections_loaded)  # due to quick-lookup bug
-        time.sleep(6) # extra delay for margin of error
+        time.sleep(1) # extra delay for margin of error
         self.searchFor(search_term)
-        time.sleep(5) # hard wait for solving issue of ticket 15614155
+        #time.sleep(5) # hard wait for solving issue of ticket 15614155
         self.util.waitForElementToBePresent(object_left_nav_section_object_link_with_one_result)
         self.assertTrue(self.util.isElementPresent(object_left_nav_section_object_link_with_one_result), "the search did not return one result as it's supposed to" )
         self.ensureLHNSectionExpanded(section)
