@@ -18,12 +18,8 @@ from time import strftime
 
 class TestArtyCreate(WebDriverTestCase):
 
-    
-
     def testArtyCreate(self):
-        
-
-               
+                      
         self.testname="TestArtyCreate"
         self.setup()
         util = WebdriverUtilities()
@@ -53,30 +49,16 @@ class TestArtyCreate(WebDriverTestCase):
         control_object.control_elements['title']="Control" + do.getTimeId() # Control for Load Test
         control_object.control_elements['description']="This control is created by ARTY as part of the Load Performance Test"  
         
-        firstItemStandard = do.getFirstItemFromASection("Standard")
+        if do.countOfAnyObjectLHS("Standard") > 0:
+            firstItemStandard = do.getFirstItemFromASection("Standard")
         
         # uncomment later
         do.createObjectIncrementingNaming(program_object, "Program", 1)     
         do.createObjectIncrementingNaming(standard_object, "Standard",1)  #case sensitive parameter & singularity
-        
-        
-        
         # select "Standard1" created in the above is used in filling Section form
         do.createObjectIncrementingNaming(section_object, "Section", 25, firstItemStandard)  #case sensitive parameter & singularity
         do.createObjectIncrementingNaming(objective_object, "Objective", 125)
         do.createObjectIncrementingNaming(objective_object, "Control", 625)
-       
-        #do.navigateToWidget("Standard") # use singularity form
-        #do.navigateToObjectWithSearch("pg1", "Program")
-        #do.mapAObjectLHN("Standard")
-        
-        
-        
-        
-        #do.mapAObjectWidget("Program", True,, 0)
-        #do.navigateToObjectAndOpenObjectEditWindow("Program",last_created_object_link)
-        #do.deleteObject()
-
 
 
 if __name__ == "__main__":

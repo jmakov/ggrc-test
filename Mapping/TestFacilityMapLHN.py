@@ -33,8 +33,10 @@ class TestFacilityMapLHN(WebDriverTestCase):
         #do.navigateToObjectWithSearch(system_name, "Facility")
         for obj in grcobject.facility_map_to_lhn: 
             do.mapAObjectLHN(obj)
-            #util.refreshPage()
        
+        # test unmapping
+        for obj in grcobject.facility_map_to_lhn: 
+            self.assertTrue(do.unmapAObjectFromWidget(obj))
 
         
 if __name__ == "__main__":

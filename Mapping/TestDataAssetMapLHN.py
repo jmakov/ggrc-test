@@ -35,7 +35,9 @@ class TestDataAssetMapLHN(WebDriverTestCase):
             do.mapAObjectLHN(obj)
             #util.refreshPage()
        
-
+        # test unmapping
+        for obj in grcobject.data_asset_map_to_lhn: 
+            self.assertTrue(do.unmapAObjectFromWidget(obj))
         
 if __name__ == "__main__":
     unittest.main()
