@@ -1836,7 +1836,13 @@ class Helpers(unittest.TestCase):
                 object = "OrgGroup"
                 open_mapping_modal_window_link = elem.section_widget_join_object_link.replace("OBJECT", object)                         
             open_map_modal_button = open_mapping_modal_window_link
-            
+        
+        # added March 03, 2015 to troubleshoot 4LevelMappings script    
+        if object=="Section" and \
+           expandables==():
+           # plus sign +
+           open_map_modal_button = '//a[contains(@class,"section-add") and contains(@data-object-singular,"Section")]'
+        
         # inject event modal list catcher
         self.util.driver.execute_script('$("body").append("{}");'.format(self.map_loaded_script))
         time.sleep(10)
@@ -1861,7 +1867,7 @@ class Helpers(unittest.TestCase):
     @log_time
     # map first object from the modal window
     def mapFirstObject(self, object, objectName="", is_program=False, email=config.username, howManyToMap=1, bypass=False):
-        time.sleep(2)
+        time.sleep(5)
         search_by_owner = "search-by-owner"
         match_term = "search"
         auto_complete_name = '//ul[contains(@class, "ui-autocomplete")]/li[contains(@class, "ui-menu-item")]/a[contains(., "TEXT")]'      
@@ -1869,11 +1875,9 @@ class Helpers(unittest.TestCase):
         search_bt_id = 'modalSearchButton'
         
         # Ukyo work around
-        elem.mapping_modal_selector_list_first_object = '//ul[@class="tree-structure new-tree"]/li[1]'
-        
-        self.util.waitForElementToBePresent(elem.mapping_modal_selector_list_first_object)
-        # self.assertTrue(self.util.waitForElementToBePresent(elem.mapping_modal_selector_list_first_object), "ERROR inside mapAObjectWidget(): cannot see first object in the selector")
-
+#         elem.mapping_modal_selector_list_first_object = '//ul[@class="tree-structure new-tree"]/li[1]'
+#         
+#         self.util.waitForElementToBePresent(elem.mapping_modal_selector_list_first_object)
         # Enter email in textbox and search
         if object != "Person":
             owner_email = email
@@ -1977,8 +1981,7 @@ class Helpers(unittest.TestCase):
         # for Section, handles it differently because you have to create a section to map
         # fill in the form and hit Save
         if object == "Section":
-            if "Policy" in objectName or "Regulation" in objectName or "Standard" in objectName:            
-                
+                           
                 titleSection = '//input[@id="section-title"]'
                 saveButton = '//div[@class="confirm-buttons"]/a[@data-toggle="modal-submit"]'
     
@@ -1988,16 +1991,11 @@ class Helpers(unittest.TestCase):
                 title = "Section_" + str(self.getTimeId())
                 self.util.inputTextIntoField(title, titleSection)
                 self.util.clickOn(saveButton)
-                time.sleep(20)
+                time.sleep(7)
                 countAfter = self.countOfAnyObjectInWidget("section")
                  
                 self.assertEqual(countBefore, countAfter, "Count before+1 = after? fails.")
-                print "mapped Section successfully."
-            else:
-                # Map_Section widget appears on others, e.g., product
-                # troubleshoot, send in blank ""
-                time.sleep(5)
-                self.mapFirstObject(object, "", is_program=is_program)
+                print "New section object created successfully."
         else:        
             # select the first object from the search results and map it
             # troubleshoot, send in blank ""
@@ -2727,15 +2725,9 @@ class Helpers(unittest.TestCase):
         
     @log_time
     #  object is singular and lowercase
-    def expandNthItemInWidget(self, object, nth=1):
+    def expandNthItemInWidget(self, nth=1):
 
-        #old
-        if nth == 1:
-            #xpath = '//section[@id="' + object + '_widget"]//li[1]//div[@class="row-fluid"]'
-            xpath = '//li[@data-object-type="' + object + '"]//div[@class="select"]/div/div[@class="row-fluid"]/div[1]/div'
-        elif nth > 1:
-            xpath = '//li[@data-object-type="' + object + '"]//div[@class="select"]/div/div[@class="row-fluid"]/div[2]/div'      
-        
+        xpath = '//li[contains(@class,"cms_controllers_tree_view_node") and contains(@data-object-type,"section")][' + str(nth) + ']//div[@class="openclose"]/i'             
         self.util.waitForElementToBePresent(xpath, 20)
         self.util.clickOn(xpath)
  
@@ -2746,6 +2738,30 @@ class Helpers(unittest.TestCase):
         self.util.waitForElementToBePresent(xpath, 20)
         self.util.clickOn(xpath) 
         time.sleep(7)
+    
+    # object = Market etc.
+    def selectObjectTypeDropdown(self, object):
+        dropdown = '//select[contains(@class,"option-type-selector")]'
+        
+        self.assertTrue(self.util.isElementPresent(dropdown), "do not see the dropdown")
+        self.util.waitForElementToBeVisible(dropdown)
+        option_to_be_selected = self.util.getTextFromXpathString(dropdown + '//option[@value="' + str(object) + '"]')
+        self.util.selectFromDropdownByValue(dropdown, object)
+    
+        
+    # assumption:  you are already in the widget object and the table has at least 1 entry
+    # object2map is like Market, OrgGroup, DataAsset, etc.
+    def mapTo2ndTier(self, object2map, title2map, email=config.username):
+        original = object2map
+        object2map = str(object2map).lower()        
+        plusSignRow_1 = '//li[contains(@class,"cms_controllers_tree_view_node")][1]//a[contains(@class,"section-add")]'
+        
+        self.expandNthItemInWidget(1)  # expand first row
+        self.util.clickOn(plusSignRow_1)
+        time.sleep(4)        
+        self.selectObjectTypeDropdown(original)
+        self.mapFirstObject(object2map, title2map, False, email, 1, True)
+
          
     @log_time
     # Object is singular and Capitalized first letter, and can be program, control, etc.

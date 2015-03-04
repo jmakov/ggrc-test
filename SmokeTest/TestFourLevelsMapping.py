@@ -26,21 +26,35 @@ class TestFourLevelsMapping(WebDriverTestCase):
 
         # mapping and un-mapping up to 3 levels: 
         # Program->Regulation->Section->Object
-        titlePol = do.getUniqueString("policy")
-        titlePrgm = do.getUniqueString("program")
-        titleSec = do.getUniqueString("section")
-        titleMkt = do.getUniqueString("policy")
+#         titlePol = do.getUniqueString("policy")
+#         titlePrgm = do.getUniqueString("program")
+#         titleSec = do.getUniqueString("section")
+#         titleMkt = do.getUniqueString("policy")
 
-        do.createObject("Policy", titlePol)
-        do.createObject("Program", titlePrgm)
-        do.mapAObjectWidget("Policy", titlePol)
+        titlePol = "policy-auto-test10:24:50.749797"
+        titlePrgm = "program-auto-test10:24:50.749869"
+        titleSec = "section-auto-test10:24:50.749922"
+        titleMkt = "market-auto-test06:57:40.975635"       
+        print titlePol
+        print titlePrgm
+        print titleSec
+        print titleMkt
         
-        do.createObject("Market", titleMkt)         
+        # playing around
+        do.mapAObjectWidget("Section", titleSec)
+        
+        do.mapTo2ndTier("Market", titleMkt)
+        
+        do.createObject("Market", titleMkt)
+        do.createObject("Policy", titlePol)
+        do.mapAObjectWidget("Section", titleSec)
+        
         do.createObject("Section", titleSec)
         do.mapAObjectWidget("Market", titleMkt)
                   
         
-        do.mapAObjectWidget("Section", titleSec)
+        do.createObject("Program", titlePrgm)
+        do.mapAObjectWidget("Policy", titlePol)
               
 
 
