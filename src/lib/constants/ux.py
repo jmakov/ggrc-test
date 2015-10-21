@@ -1,0 +1,3 @@
+
+
+MAX_USER_WAIT_SECONDS = 60

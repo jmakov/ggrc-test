@@ -1,8 +1,14 @@
-from src.lib.constants import (
-    browser,
-    file,
+
+
+from lib.constants import (
+    element,
     host,
     log,
     path,
-    yaml
+    yaml,
+    uri,
+    ux,
+    selector,
+    tag,
+    timeout
 )
