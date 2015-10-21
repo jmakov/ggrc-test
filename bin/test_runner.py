@@ -9,11 +9,10 @@ import logging
 
 # append path so we can import project modules
 PROJECT_ROOT_PATH = os.path.dirname(os.path.abspath(__file__)) + "/../"
-sys.path.append(PROJECT_ROOT_PATH)
+PROJECT_SRC_PATH = PROJECT_ROOT_PATH + "src/"
+sys.path.append(PROJECT_SRC_PATH)
 
-from src.lib import constants
-sys.path.append(PROJECT_ROOT_PATH + constants.path.SRC)
-from src.lib import file_ops, log, virtual_env
+from lib import constants, file_ops, log, virtual_env
 
 
 VIRTENV_PATH = PROJECT_ROOT_PATH + constants.path.VIRTUALENV_DIR
@@ -26,34 +25,30 @@ def set_up_directories():
     file_ops.create_directory(VIRTENV_PATH)
 
 
-def _install(package_name):
-    # using subprocess instead of pip.main(['install', package_name]) because subprocess installs the package
-    #  in the right virtenv which we have previously activated
-    exit_code = subprocess.call(["pip", "install", package_name])
+def update_virtenv():
+    exit_code = subprocess.call(
+        ["pip", "install", "-r", constants.path.REQUIREMENTS]
+    )
 
     if exit_code != 0:
-        raise EnvironmentError("Problem installing library=%s. Please check the logs." % package_name)
-
-
-def update_virtenv():
-    with open(PROJECT_ROOT_PATH + constants.path.REQUIREMENTS) as f:
-        lines = f.readlines()
-
-    for package_name in lines:
-        logger.info("Updating or installing %s" % package_name)
-        _install(package_name)
+        raise EnvironmentError("Problem installing requirements")
 
 
 def run_tests():
+    # todo: add option to run in parallel
     import nose
     nose.main()
 
 
 if __name__ == "__main__":
     set_up_directories()
-    log.set_default_file_handler(logger, constants.path.LOGS + constants.log.Logger.TEST_RUNNER)
+    log.set_default_file_handler(
+        logger, constants.path.LOGS + constants.log.TEST_RUNNER
+    )
 
-    exit_code, result = commands.getstatusoutput("virtualenv %s" % constants.path.VIRTUALENV_DIR)
+    exit_code, result = commands.getstatusoutput(
+        "virtualenv %s" % PROJECT_ROOT_PATH + constants.path.VIRTUALENV_DIR
+    )
 
     if exit_code != 0:
         print result
