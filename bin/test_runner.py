@@ -35,7 +35,6 @@ def update_virtenv():
 
 
 def run_tests():
-    # todo: add option to run in parallel
     import nose
     nose.main()
 
@@ -47,7 +46,8 @@ if __name__ == "__main__":
     )
 
     exit_code, result = commands.getstatusoutput(
-        "virtualenv %s" % PROJECT_ROOT_PATH + constants.path.VIRTUALENV_DIR
+        "virtualenv %s %s" %
+        (PROJECT_ROOT_PATH + constants.path.VIRTUALENV_DIR, "--python=python2")
     )
 
     if exit_code != 0:
