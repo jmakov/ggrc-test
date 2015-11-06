@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright (C) 2015 Google Inc., authors, and contributors <see AUTHORS file>
+# Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+# Created By: jernej@reciprocitylabs.com
+# Maintained By: jernej@reciprocitylabs.com
 
 TEST_TITLE = u"Test title with unicode characters: Un texte en français"
 TEST_DESCRIPTION_LONG = u'"Governance, Risk Management, and Compliance (GRC) are ' \

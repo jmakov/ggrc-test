@@ -1,4 +1,7 @@
-
+# Copyright (C) 2015 Google Inc., authors, and contributors <see AUTHORS file>
+# Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+# Created By: jernej@reciprocitylabs.com
+# Maintained By: jernej@reciprocitylabs.com
 
 import os
 import logging
@@ -15,7 +18,8 @@ def create_directory(path):
     """
     Creates a directory if it doesn't already exist.
     """
-    # Check if path is a file_path or a dir_path. Dir path is a string that ends with os.sep.
+    # Check if path is a file_path or a dir_path. Dir path is a string that
+    # ends with os.sep.
     if path[-1] != os.sep:
         path, file_name = os.path.split(path)
 
