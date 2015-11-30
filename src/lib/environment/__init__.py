@@ -1,16 +1,28 @@
+# header6ff05843-c222-461f-8226-36a7abe6806e
+
 import os
 import logging
+from ast import literal_eval
 from lib import constants, file_ops
 
 
-yaml = file_ops.load_yaml_contents(constants.path.YAML)
-PROJECT_ROOT_PATH = os.path.dirname(os.path.abspath(__file__)) + "/../"
+PROJECT_ROOT_PATH = os.path.dirname(os.path.abspath(__file__)) + "/../../../"
 VIRTENV_PATH = PROJECT_ROOT_PATH + constants.path.VIRTUALENV_DIR
-LOGGING_FORMAT = yaml[constants.yaml.LOGGING][constants.yaml.FORMAT]
-CHROME_DRIVER_PATH = PROJECT_ROOT_PATH + constants.path.RESOURCES + constants.path.CHROME_DRIVER
 
+_config_file_path = PROJECT_ROOT_PATH + constants.path.RESOURCES \
+    + constants.path.YAML
+_yaml = file_ops.load_yaml_contents(_config_file_path)
+LOGGING_FORMAT = _yaml[constants.yaml.LOGGING][constants.yaml.FORMAT]
+LOGGING_LEVEL = _yaml[constants.yaml.LOGGING][constants.yaml.LEVEL]
+CHROME_DRIVER_PATH = _yaml[constants.yaml.WEBDRIVER][constants.yaml.PATH]
+APP_URL = _yaml[constants.yaml.APP][constants.yaml.URL]
+DISPLAY_WINDOWS = _yaml[constants.yaml.BROWSER][constants.yaml.DISPLAY]
+WINDOW_RESOLUTION = literal_eval(_yaml[constants.yaml.BROWSER][
+    constants.yaml.RESOLUTION])
+
+LOG_PATH = PROJECT_ROOT_PATH + constants.path.LOGS_DIR
 # register loggers
-selenium_logger = logging.getLogger(constants.log.Selenium.SELENIUM_REMOTE_CONNECTION)
+selenium_logger = logging.getLogger(constants.log.SELENIUM_REMOTE_CONNECTION)
 
 # Only display possible problems
-selenium_logger.setLevel(logging.WARNING)
+selenium_logger.setLevel(logging.DEBUG)

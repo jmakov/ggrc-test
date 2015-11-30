@@ -1,3 +1,5 @@
+# header6ff05843-c222-461f-8226-36a7abe6806e
+
 import os
 import logging
 try:
@@ -13,7 +15,8 @@ def create_directory(path):
     """
     Creates a directory if it doesn't already exist.
     """
-    # Check if path is a file_path or a dir_path. Dir path is a string that ends with os.sep.
+    # Check if path is a file_path or a dir_path. Dir path is a string that
+    # ends with os.sep
     if path[-1] != os.sep:
         path, file_name = os.path.split(path)
 
@@ -29,3 +32,19 @@ def load_yaml_contents(file_path):
         contents = yaml.load(f)
 
     return contents
+
+
+def get_unique_postfix(file_path, extension):
+    postfix = 0
+    new_path = file_path + str(postfix) + extension
+
+    while os.path.isfile(new_path):
+        postfix += 1
+        new_path = file_path + str(postfix) + extension
+
+    return new_path
+
+
+def delete_directory_contents(path):
+    for file_name in os.listdir(path):
+        os.remove(path + os.sep + file_name)
