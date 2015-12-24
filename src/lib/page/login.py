@@ -18,3 +18,4 @@ class LoginPage(Page):
 
     def login(self, username=None, password=None):
         self.click_and_wait(self.LOGIN_BUTTON)
+
