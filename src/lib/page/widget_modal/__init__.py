@@ -3,8 +3,5 @@
 # Created By: jernej@reciprocitylabs.com
 # Maintained By: jernej@reciprocitylabs.com
 
-from lib import base
-
-
-class NewCustomAttributeModal(base.Modal):
-  pass
+# flake8: noqa
+from delete_object import DeleteObjectModal
