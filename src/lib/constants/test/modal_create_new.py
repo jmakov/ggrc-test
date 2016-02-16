@@ -6,8 +6,8 @@
 
 
 class Program(object):
-  TITLE = u"""Test title       with unicode characters: Un texte en and
-             additionally"""
+  TITLE = u"""Test title with unicode characters: Un texte en français and
+             additionally đšžćč!#./?€ħ&^~'"""
   DESCRIPTION_LONG = u"""Governance, Risk Management, and Compliance (GRC)
     are three pillars that work together for the purpose of
     assuring that an organization meets its objectives. ...
